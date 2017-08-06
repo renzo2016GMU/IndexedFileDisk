@@ -46,82 +46,42 @@ public class IndexedFile {
 
 	if (notDuplicate) // If its not a duplicate key
 	{
-	    boolean availableSpace = findAvailableAndStore(buffer, record); // find
-									    // an
-									    // available
-									    // space
-									    // in
-									    // buffer
+	    boolean availableSpace = findAvailableAndStore(buffer, record);
 	    if (availableSpace) // Found available space
 	    {
 		disk.writeSector(sectorNum, buffer); // Write the buffer to disk
-						     // sector
 		return true;
 	    } else // Need to go overflow sectors
 	    {
 		if (overflowSectors == 0) // Oops i don't have a overflow sector
 		{
-		    overflowStart = this.indexStart + this.indexSectors;// Allocated
-									// the
-									// first
-									// overflow
-									// sector
-		    disk.readSector(overflowStart, buffer); // Read in the first
-							    // empty overflow
-							    // sector into
-							    // buffer
-		    findAvailableAndStore(buffer, record); // write the record
-							   // into buffer
-		    disk.writeSector(overflowStart, buffer); // Write to the
-							     // disk overflow
-							     // sector
+		    overflowStart = this.indexStart + this.indexSectors;
+		    disk.readSector(overflowStart, buffer);
+		    findAvailableAndStore(buffer, record);
+		    disk.writeSector(overflowStart, buffer);
 		    overflowSectors++; // Increment number of overflow sectors
-				       // in use
 		    return true;
 		} else // If not the first time
 		{
 		    int currOverflowSector = overflowStart;
 		    while ((currOverflowSector < overflowStart + overflowSectors) && notDuplicate) {
-			disk.readSector(currOverflowSector, buffer); // Read in
-								     // overflow
-								     // sector
-			notDuplicate = checkNotDuplicate(buffer, key); // Check
-								       // duplicate
-								       // key
+			disk.readSector(currOverflowSector, buffer);
+			notDuplicate = checkNotDuplicate(buffer, key);
 			currOverflowSector++; // Move to next overflow sector
 		    }
 		    if (notDuplicate) // No duplicate key in overflow sector
 		    {
 			currOverflowSector--; // Back to current overflow sector
-			availableSpace = findAvailableAndStore(buffer, record); // Find
-										// an
-										// available
-										// space
-										// in
-										// buffer
+			availableSpace = findAvailableAndStore(buffer, record);
 			if (!availableSpace) // If not more space in this
-					     // overflow sector
 			{
-			    currOverflowSector++; // Move to next overflow
-						  // sector
+			    currOverflowSector++;
 			    overflowSectors++; // Increment number of overflow
 					       // sectors in use
-			    disk.readSector(currOverflowSector, buffer); // Read
-									 // next
-									 // overflow
-									 // sector(empty)
-									 // into
-									 // buffer
-			    findAvailableAndStore(buffer, record); // write the
-								   // record
-								   // into empty
-								   // buffer
+			    disk.readSector(currOverflowSector, buffer);
+			    findAvailableAndStore(buffer, record);
 			}
-			disk.writeSector(currOverflowSector, buffer); // Write
-								      // to the
-								      // disk
-								      // overflow
-								      // sector
+			disk.writeSector(currOverflowSector, buffer);
 			return true;
 		    } else // Found duplicate key in overflow sector
 			return false;
@@ -140,22 +100,7 @@ public class IndexedFile {
 	int nextKeyPlace = 0; // Index of next key
 	int compVal = 1;
 
-	while ((numKeysChecked < recordsPerSector) && (buffer[nextKeyPlace] != 0) && compVal != 0) { // while
-												     // not
-												     // the
-												     // last
-												     // record
-												     // in
-												     // buffer
-												     // &&
-												     // has
-												     // next
-												     // record
-												     // &&
-												     // not
-												     // the
-												     // same
-												     // Keys
+	while ((numKeysChecked < recordsPerSector) && (buffer[nextKeyPlace] != 0) && compVal != 0) {
 	    char[] tempKey = getKey(buffer, nextKeyPlace); // Get keys from
 							   // buffer
 	    compVal = compareKeys(key, tempKey); // Compare key
@@ -164,34 +109,11 @@ public class IndexedFile {
 	}
 	if (compVal == 0) // If found
 	{
-	    char[] tmpRecord = getRecord(buffer, nextKeyPlace - recordSize); // Back
-									     // to
-									     // previous
-									     // key
-									     // place
-									     // where
-									     // we
-									     // found
-									     // the
-									     // key
+	    char[] tmpRecord = getRecord(buffer, nextKeyPlace - recordSize);
 	    copyRecord(tmpRecord, record); // Copy the entire found record into
 					   // parameter record
 	    return true;
-	} else if ((compVal != 0) && (numKeysChecked < recordsPerSector))// If
-									 // not
-									 // found
-									 // and
-									 // there
-									 // is
-									 // still
-									 // space
-									 // left,
-									 // we
-									 // know
-									 // its
-									 // not
-									 // in
-									 // file
+	} else if ((compVal != 0) && (numKeysChecked < recordsPerSector))
 	    return false;
 	else // If not found and sector is full, we need to check overflow
 	     // sectors
@@ -201,14 +123,7 @@ public class IndexedFile {
 	    nextKeyPlace = 0; // Index of next key
 	    compVal = 1;
 
-	    while ((currOverflowSector < overflowStart + overflowSectors) && compVal != 0) { // While
-											     // has
-											     // more
-											     // overflow
-											     // sectors
-											     // and
-											     // not
-											     // found
+	    while ((currOverflowSector < overflowStart + overflowSectors) && compVal != 0) {
 		disk.readSector(currOverflowSector, buffer); // Read in overflow
 							     // sector to buffer
 		while ((numKeysChecked < recordsPerSector) && (buffer[nextKeyPlace] != 0) && compVal != 0) {
@@ -225,16 +140,7 @@ public class IndexedFile {
 	    if (compVal != 0) // Not found in overflow sector
 		return false;
 	    else {
-		char[] tmpRecord = getRecord(buffer, nextKeyPlace - recordSize); // Back
-										 // to
-										 // previous
-										 // key
-										 // place
-										 // where
-										 // we
-										 // found
-										 // the
-										 // key
+		char[] tmpRecord = getRecord(buffer, nextKeyPlace - recordSize);
 		copyRecord(tmpRecord, record); // Copy the entire found record
 					       // into parameter record
 		return true;
@@ -264,33 +170,13 @@ public class IndexedFile {
 		int compVal = 0;
 		int nextKeyPlace = currKeyPlace + indexRecordSize; // Get next
 								   // Key place
-		if (nextKeyPlace >= disk.getSectorSize() || currSector[nextKeyPlace] == 0)// if
-											  // current
-											  // key
-											  // is
-											  // the
-											  // last
-											  // key
-											  // in
-											  // sector
+		if (nextKeyPlace >= disk.getSectorSize() || currSector[nextKeyPlace] == 0)
 		    lastKeyInSector = true;
 		else
-		    compVal = compareKeys(keyChar, getKey(currSector, nextKeyPlace)); // Compare
-										      // with
-										      // next
-										      // Key
+		    compVal = compareKeys(keyChar, getKey(currSector, nextKeyPlace));
 
-		if (compVal == -1 || lastKeyInSector) // If argument key is less
-						      // than next key, or last
-						      // key in sector
-		{
-		    address = getSectorNumber(currSector, currKeyPlace); // Get
-									 // the
-									 // address
-									 // of
-									 // the
-									 // current
-									 // key
+		if (compVal == -1 || lastKeyInSector) {
+		    address = getSectorNumber(currSector, currKeyPlace);
 		    notDoneCurrSector = false;
 		    currLevel++; // Increment leve;
 		} else // Else if equals or greater than next key
@@ -314,27 +200,15 @@ public class IndexedFile {
 	boolean keyTwoDone = false; // End of comparing key 2
 	int countKeyChars = 0; // To count characters in keys
 
-	while (!allSame && !keyOneLarger && !keyTwoLarger) // Loop until keys
-							   // are the same or
-							   // One of the key is
-							   // larger
-	{
+	while (!allSame && !keyOneLarger && !keyTwoLarger) {
 	    char charKeyOne = 0;
 	    char charKeyTwo = 0;
 
-	    if ((countKeyChars < keyOne.length) && (keyOne[countKeyChars] != 0)) // If
-										 // keyOne
-										 // has
-										 // more
-										 // element
+	    if ((countKeyChars < keyOne.length) && (keyOne[countKeyChars] != 0))
 		charKeyOne = keyOne[countKeyChars];
 	    else // If not we done with comparing keyOne
 		keyOneDone = true;
-	    if ((countKeyChars < keyTwo.length) && (keyTwo[countKeyChars] != 0)) // If
-										 // keyTwo
-										 // has
-										 // more
-										 // element
+	    if ((countKeyChars < keyTwo.length) && (keyTwo[countKeyChars] != 0))
 		charKeyTwo = keyTwo[countKeyChars];
 	    else // If not we done with comparing keyTwo
 		keyTwoDone = true;
@@ -347,17 +221,9 @@ public class IndexedFile {
 		keyOneLarger = true; // Making keyOne larger
 	    else // Else we compare both elements
 	    {
-		if (charValue(charKeyOne) > charValue(charKeyTwo)) // If keyOne
-								   // larger
-								   // than
-								   // keyTwo
+		if (charValue(charKeyOne) > charValue(charKeyTwo))
 		    keyOneLarger = true;
-		else if (charValue(charKeyTwo) > charValue(charKeyOne)) // Else
-									// if
-									// keyTwo
-									// larger
-									// than
-									// keyOne
+		else if (charValue(charKeyTwo) > charValue(charKeyOne))
 		    keyTwoLarger = true;
 	    } // else both same we do nothing, and check next char
 	    countKeyChars++;
@@ -370,36 +236,28 @@ public class IndexedFile {
 	    return -1;
     }
 
-    private int charValue(char ch) // Professor provided this function and code
-    { // Will compare character IN UPPER CASE
+    private int charValue(char ch){
 	int val = Character.valueOf(ch);
 	if (val >= 97 && val <= 122)
 	    val -= 32;
 	return val;
     }
 
-    private char[] getKey(char[] sector, int begin) // Get the key from a sector
-    {
+    private char[] getKey(char[] sector, int begin) {
 	char[] key = new char[keySize]; // Create new empty key array to return
 	for (int i = 0; i < keySize; i++)
 	    key[i] = sector[begin + i]; // Copy key
 	return key;
     }
 
-    private char[] getRecord(char[] sector, int begin) // Get record from a
-						       // sector
-    {
+    private char[] getRecord(char[] sector, int begin) {
 	char[] record = new char[recordSize];
 	for (int i = 0; i < recordSize; i++)
 	    record[i] = sector[begin + i];
 	return record;
     }
 
-    private void copyRecord(char[] recordOne, char[] recordTwo) // Copy contents
-								// from
-								// recordOne to
-								// recordTwo
-    {
+    private void copyRecord(char[] recordOne, char[] recordTwo) {
 	for (int i = 0; i < recordSize; i++)
 	    recordTwo[i] = recordOne[i];
     }
@@ -416,16 +274,7 @@ public class IndexedFile {
 	int sectorNumSize = indexRecordSize - keySize; // Sector number size
 	StringBuilder sectorNumS = new StringBuilder();
 
-	for (int i = sectorNumStart; (numChar < sectorNumSize) && (sector[i] != 0); i++)// Loop
-											// while
-											// not
-											// null
-											// or
-											// <=
-											// sector
-											// number
-											// size
-	{
+	for (int i = sectorNumStart; (numChar < sectorNumSize) && (sector[i] != 0); i++) {
 	    sectorNumS.append(sector[i]);
 	    numChar++;
 	}
@@ -446,24 +295,8 @@ public class IndexedFile {
 	int nextKeyPlace = 0; // Index of next key
 	int compVal = 1;
 
-	while ((numKeysChecked < recordsPerSector) && (buffer[nextKeyPlace] != 0) && compVal != 0) { // while
-												     // not
-												     // the
-												     // last
-												     // record
-												     // in
-												     // buffer
-												     // &&
-												     // has
-												     // next
-												     // record
-												     // &&
-												     // not
-												     // the
-												     // same
-												     // Keys
-	    char[] tempKey = getKey(buffer, nextKeyPlace); // Get keys from
-							   // buffer
+	while ((numKeysChecked < recordsPerSector) && (buffer[nextKeyPlace] != 0) && compVal != 0) {
+	    char[] tempKey = getKey(buffer, nextKeyPlace);
 	    compVal = compareKeys(key, tempKey); // Compare key
 	    numKeysChecked++; // Increment number of keys checked
 	    nextKeyPlace = nextKeyPlace + recordSize; // Move to next key place
@@ -527,43 +360,20 @@ public class IndexedFile {
 		int compVal = 0;
 		int nextKeyPlace = currKeyPlace + indexRecordSize; // Get next
 								   // Key place
-		if (nextKeyPlace >= disk.getSectorSize() || currSector[nextKeyPlace] == 0)// if
-											  // current
-											  // key
-											  // is
-											  // the
-											  // last
-											  // key
-											  // in
-											  // sector
+		if (nextKeyPlace >= disk.getSectorSize() || currSector[nextKeyPlace] == 0)
 		    lastKeyInSector = true;
 		else
-		    compVal = compareKeys(keyChar, getKey(currSector, nextKeyPlace)); // Compare
-										      // with
-										      // next
-										      // Key
-
-		if (compVal == -1 || lastKeyInSector) // If argument key is less
-						      // than next key, or last
-						      // key in sector
-		{
-		    address = getSectorNumber(currSector, currKeyPlace); // Get
-									 // the
-									 // address
-									 // of
-									 // the
-									 // current
-									 // key
+		    compVal = compareKeys(keyChar, getKey(currSector, nextKeyPlace));
+		if (compVal == -1 || lastKeyInSector) {
+		    address = getSectorNumber(currSector, currKeyPlace);
 		    notDoneCurrSector = false;
 		    currLevel++; // Increment leve;
 		} else // Else if equals or greater than next key
-		    currKeyPlace = nextKeyPlace; // Set current key equals to
-						 // next key
+		    currKeyPlace = nextKeyPlace;
 	    }
 	    if (currLevel == indexLevels) // When we get to bottom tree level
 		notFound = false; // We done, we found the sector number
 	}
-
 	return address;
     }
 }

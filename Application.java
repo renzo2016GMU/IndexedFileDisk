@@ -118,14 +118,7 @@ public class Application {
 		country = keyboard.nextLine();
 		System.out.println("Altitude: ");
 		altitude = keyboard.nextLine();
-
-		record = TextFileIO.formatRecord(name, 27, country, 27, altitude, 6);// Format
-										     // a
-										     // 60
-										     // character
-										     // record
-										     // with
-										     // data
+		record = TextFileIO.formatRecord(name, 27, country, 27, altitude, 6);
 		success = myIndexFile.insertRecord(record);
 		if (success)
 		    System.out.println("<<< Insertion was successful >>>");
@@ -137,12 +130,6 @@ public class Application {
 		System.out.println("Name: "); // Get record data
 		name = keyboard.nextLine();
 		record = TextFileIO.formatRecord(name, 27, "", 27, "", 6); // Format
-									   // a
-									   // 60
-									   // character
-									   // record
-									   // with
-									   // key
 		success = myIndexFile.findRecord(record);
 		if (success)
 		    TextFileIO.printRecord(record, 27, 27, 6);

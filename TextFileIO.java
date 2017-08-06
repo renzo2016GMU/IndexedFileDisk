@@ -2,6 +2,10 @@ import java.util.Scanner;
 import java.io.*;
 import java.util.regex.*;
 
+/**
+ * @author rt
+ *
+ */
 public class TextFileIO {
     private static int dataSectorsAllocated = 0;
     private static int indexStart;;
@@ -31,17 +35,10 @@ public class TextFileIO {
 	{
 	    String line = textFile.nextLine();// Read in one line from file
 
-	    if (currRecordsInSector < (recordsPerSector - 3))// If the records
-							     // in current
-							     // sector less than
-							     // recordsPerSector
-							     // - 3(Leave 3
-							     // record spaces)
+	    if (currRecordsInSector < (recordsPerSector - 3))
 	    {
 		processString(currRecordsInSector * recordSize, records, line, nameSize, countrySize); // Format
-												       // the
-												       // record
-	    } // recordBegin : number of records in sector * record size
+	    }
 	    else // Need to leave 3 RecordSpaces, if greater than or equals to
 		 // recordsPerSector-3
 	    {
@@ -241,6 +238,15 @@ public class TextFileIO {
 	return indexLevels;
     }
 
+    /**
+     * @param name
+     * @param nSize
+     * @param country
+     * @param cSize
+     * @param altitude
+     * @param aSize
+     * @return Character Array 
+     */
     public static char[] formatRecord(String name, int nSize, String country, int cSize, String altitude, int aSize) {
 	int recordSize = nSize + cSize + aSize; // Get record size
 	char[] nameC = new char[nSize];
@@ -274,6 +280,12 @@ public class TextFileIO {
 	return record;
     }
 
+    /**
+     * @param record
+     * @param nSize
+     * @param cSize
+     * @param aSize
+     */
     public static void printRecord(char[] record, int nSize, int cSize, int aSize) {
 	StringBuilder name = new StringBuilder();
 	StringBuilder country = new StringBuilder();
